@@ -1,0 +1,278 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>无标题文档</title>
+<style>
+	body{
+		border-bottom:50px solid #DEFFEC;
+	}
+	*
+	{ 
+		margin:0; 
+		padding: 0;
+	}
+	#map
+	{
+		margin: 20px auto;
+		border:1px #FFC68E;
+	}
+	.cellDiv
+	{
+		border-right: 1px solid #F7E5D3;
+		border-bottom:1px solid #F7E5D3;
+		float: left;
+		box-sizing: border-box;
+		text-align: center;
+		font-size: 0px;
+		line-height: 24px;
+		background-color:#FFF1E4;
+	}
+	.snakeCell
+	{
+		background-color:#5059D2;
+	}
+	.snakeFoodCell
+	{
+		background-color:#DABD4D;
+	}
+	#button1 {
+		float:left;
+		color:aliceblue;
+		font-size: 15px;
+		font-weight: 800;
+  background:#8199FF;
+  width: 100px;
+  padding: 4px 0;
+  height:60px;
+		margin-left:60px;
+		margin-top:30px;
+		margin-bottom: 0px;
+  transform: translateX(-50%) translateY(-50%);
+		
+		 -webkit-transition-duration: 0.4s; /* Safari */
+    transition-duration: 0.4s;
+    cursor: pointer;
+		box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+		}
+		#button1:hover {
+ 
+    background-color:#C2BDFF;
+    color:#2B44FF;
+	box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+}
+	#button2 {
+		float:left;
+		color:aliceblue;
+		font-size: 15px;
+		font-weight: 800;
+  background:#FF8E32;
+  width: 100px;
+  padding: 4px 0;
+  height:60px;
+		margin-left:60px;
+		margin-top:30px;
+		margin-bottom: 0px;
+  transform: translateX(-50%) translateY(-50%);
+		
+		 -webkit-transition-duration: 0.4s; /* Safari */
+    transition-duration: 0.4s;
+    cursor: pointer;
+		box-shadow: 0 8px 16px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+		}
+		#button2:hover {
+ 
+    background-color:#FFDFAF;
+    color:#FC9F39;
+	box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24), 0 17px 50px 0 rgba(0,0,0,0.19);
+}
+	table.an{
+		display:inline-block;
+		width:100px;
+	}
+	#request{
+		width:600px;
+	}
+	p{
+		text-align: center;
+		color:#545454;
+		float:right;
+	}
+</style>
+</head>
+ 
+<body>
+	<table>
+		<tr>
+			<th class="an">
+ <button id="button1" onclick="myFunction()">GAME RESTART!</button></th>
+	<th class="an"><button id="button2" onclick="page()">返回首页</button>
+	</th>
+		<th id="request"><p style="color:#545454">在这一关中，你会面临看不见的雷区.<br>食物将不会被放置在雷区。<br>
+			踩到雷区游戏会结束。</p></th></tr>	</table>
+<div id="map" ></div>
+ 
+<script>
+	
+ //设计地图的长款和行列数目
+	var row=20;//行数
+	var col=40;//列数
+	var cellWidth=30;//单元格宽度
+	var cellHeight=30;//单元格高度
+	var Map=document.getElementById("map");
+	Map.style.width=cellWidth*col+'px';
+	Map.style.height=cellHeight*row+'px';
+	
+	//创建地图和里面的cell
+	function createMap(){
+		for(var i=0;i<row*col;i++){
+			var cellDiv=document.createElement("div");
+			cellDiv.className="cellDiv";
+			cellDiv.innerText=i;
+			cellDiv.style.width=cellWidth+'px';
+			cellDiv.style.height=cellHeight+'px';
+			Map.appendChild(cellDiv);
+		}
+	}
+	
+	createMap();
+	
+	//蛇的初始位置长度
+	var x=7;//蛇头初始x坐标
+	var y=9;//蛇头初始y坐标
+	var snakeLength=3;//蛇初始长度
+	var snake=[];//存储蛇身
+	//蛇初始位置 蛇头是序号187 
+	for(var i=0,st=y*col+x;i<snakeLength;i++,st--){
+		Map.getElementsByTagName("div")[st].className="cellDiv snakeCell";//蛇头既属于格子cellDiv 又属于蛇的部分snackCell
+		snake.push(st);
+	}
+	
+	//玩法：游戏结束和蛇长度增加
+	function eachSnake(){
+		
+		if(x<0 || x>col-1 || y<0 || y>row-1){//碰壁
+			alert("Game Over");
+			clearInterval(timerq);
+			return;
+		}
+		if(x>col-18&&y>row-5){//踩雷
+			Map.getElementsByClassName("cellDiv").style.background="red";
+			alert("踩雷了");
+			clearInterval(timerq);
+			return;
+			
+		};
+		if(x<3&&y<2){//踩雷
+			alert("踩雷了");
+			clearInterval(timerq);
+			return;
+			
+		};
+		var st=y*col+x;
+		
+		if(snake.slice(1).includes(st)){//吃到自己
+			alert("Game Over");
+			clearInterval(timerq);
+			return;
+		}
+		
+		if(st==snakeFoodId){//吃到食物
+			snakeLength++;
+			snake.unshift(st);//在数组中添加一节
+			createFood();
+		}else{//没有吃到食物
+			snake.unshift(st);
+			var sw=snake.pop();//s蛇尾去掉
+			Map.getElementsByTagName("div")[sw].className="cellDiv";
+		}//这种情况下不增加snakeCell的长度
+		Map.getElementsByTagName("div")[st].className="cellDiv snakeCell";	
+	}
+	
+	//设置蛇的运动按键
+	var vector="right";//初始方向
+	var timerq;
+	function snakeMove(){
+		
+		switch(vector){
+			case 'right':
+				x++;			
+				break;
+			case 'left':
+				x--;			
+				break;
+			case 'up':
+				y--;			
+				break;	
+			case 'down':
+				y++;			
+				break;
+		}	
+		eachSnake();
+               pd=false;	}
+	timerq=setInterval(snakeMove,440);//蛇的速度
+	
+	//连续快速按键会碰到自己的问题
+	var pd=false;
+	document.onkeydown=function(event){
+		
+		if(pd){
+			return;
+		} //禁止相反方向的掉头问题
+		var keyCode=event.keyCode;
+		if((vector=='left' && keyCode==39) || (vector=='right' && keyCode==37) || (vector=='up' && keyCode==40) || (vector=='down' && keyCode==38)){
+			return;
+		}
+		//对应键盘上的按键
+		switch(keyCode){
+			case 37:
+				vector='left';
+				break;
+			case 38:
+				vector='up';
+				break;
+			case 39:
+				vector='right';
+				break;
+			case 40:
+				vector='down';
+				break;
+		}
+		pd=true;
+		
+	}
+	
+	//创建食物
+	var snakeFoodId;
+	
+	function createFood(){
+		snakeFoodId=Math.round(Math.random()*(row*col-1));//食物位置
+		if(snake.includes(snakeFoodId)){
+			//食物被创建到了蛇身上
+			createFood();
+			
+		}
+		if(snakeFoodId>col-18&&snakeFoodId>row-5){//食物创建到 雷上
+			snakeFoodId=Math.round(Math.random()*(row*col-1));//重新创建一遍食物的位置
+			
+		};
+		if(snakeFoodId<3&&snakeFoodId<2){//食物创建到 雷上
+				snakeFoodId=Math.round(Math.random()*(row*col-1));
+			
+		};
+		Map.getElementsByTagName("div")[snakeFoodId].className="cellDiv snakeFoodCell";
+	}
+	
+	createFood();
+	//button
+	function myFunction(){
+	window.location.href="tcs踩雷.html"
+	}
+	function page(){
+	window.location.href="index (2).html"
+	}
+	
+</script>
+ 
+</body>
+</html>
